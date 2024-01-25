@@ -1,0 +1,41 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+from mpl_toolkits.basemap import Basemap
+
+# Sample dataset with latitude and longitude information for cities
+data = {
+    'City': ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia'],
+    'Latitude': [40.7128, 34.0522, 41.8781, 29.7604, 33.4484, 39.9526],
+    'Longitude': [-74.0060, -118.2437, -87.6298, -95.3698, -112.0740, -75.1652]
+}
+
+df = pd.DataFrame(data)
+
+# Feature scaling
+scaler = StandardScaler()
+df[['Latitude', 'Longitude']] = scaler.fit_transform(df[['Latitude', 'Longitude']])
+
+# Applying k-means clustering
+kmeans = KMeans(n_clusters=3, random_state=42)
+df['Cluster'] = kmeans.fit_predict(df[['Latitude', 'Longitude']])
+
+# Plotting the clustered cities on a map
+plt.figure(figsize=(10, 8))
+m = Basemap(projection='mill', llcrnrlat=-40, urcrnrlat=60, llcrnrlon=-140, urcrnrlon=160, resolution='c')
+
+m.drawcoastlines()
+m.drawcountries()
+m.drawmapboundary(fill_color='aqua')
+m.fillcontinents(color='lightgreen', lake_color='aqua')
+
+colors = {0: 'red', 1: 'blue', 2: 'green'}
+for index, row in df.iterrows():
+    x, y = m(row['Longitude'], row['Latitude'])
+    m.plot(x, y, 'o', markersize=8, color=colors[row['Cluster']], alpha=0.75, label=row['City'])
+
+plt.title('K-Means Clustering of Cities')
+plt.legend(loc='upper right')
+plt.show()
